@@ -1,0 +1,29 @@
+#cloud-config
+package_update: true
+
+packages:
+  - ca-certificates
+  - curl
+  - docker.io
+
+write_files:
+  - path: /root/run-pupils-bachelor.sh
+    permissions: "0755"
+    owner: root:root
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      systemctl enable docker
+      systemctl start docker
+
+      docker pull ${docker_image}
+      docker rm -f pupils-bachelor || true
+      docker run -d \
+        --name pupils-bachelor \
+        --restart unless-stopped \
+        -p 8000:8000 \
+        ${docker_image}
+
+runcmd:
+  - /root/run-pupils-bachelor.sh
