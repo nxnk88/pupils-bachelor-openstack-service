@@ -1,4 +1,21 @@
-# Pupils Bachelor OpenStack Service
+# Отчет по дисциплине
+"Технология проектирования автоматизированных систем в защищенном исполнении"
+
+## Тема работы
+
+Разработка и деплой веб-сервиса для определения кандидатов на степень бакалавра
+
+## Студент
+
+`gofman03`
+
+## Дата выполнения
+
+`15.06.2026`
+
+## Название проекта
+
+`pupils-bachelor-openstack-service`
 
 ## 1. Цель работы
 
@@ -57,6 +74,14 @@
 
 ## 4. Структура репозитория
 
+Репозиторий проекта опубликован на GitHub и содержит все основные файлы
+приложения, инфраструктуры и материалов для защиты.
+
+![Рисунок 1. Репозиторий проекта на GitHub](screenshots/01-github-repository.jpg)
+*Рисунок 1. Репозиторий `nxnk88/pupils-bachelor-openstack-service` на GitHub.*
+
+Структура локального проекта выглядит следующим образом:
+
 ```text
 .
 ├── app.py
@@ -67,20 +92,12 @@
 ├── README.md
 ├── DEFENSE.md
 ├── screenshots/
-│   └── .gitkeep
 ├── terraform-openstack/
-│   ├── versions.tf
-│   ├── variables.tf
-│   ├── main.tf
-│   ├── outputs.tf
-│   ├── cloud-init.yaml
-│   ├── terraform.tfvars.example
-│   └── README.md
 └── k8s/
-    ├── namespace.yaml
-    ├── deployment.yaml
-    └── service.yaml
 ```
+
+![Рисунок 2. Структура проекта](screenshots/02-project-tree.jpg)
+*Рисунок 2. Вывод `tree /F` в корне проекта.*
 
 Основные файлы проекта:
 
@@ -89,8 +106,8 @@
 - `Dockerfile` - инструкция сборки Docker-образа;
 - `terraform-openstack/` - Terraform-конфигурация для OpenStack;
 - `k8s/` - Kubernetes-манифесты;
-- `DEFENSE.md` - краткий сценарий защиты и список скриншотов;
-- `screenshots/` - каталог для скриншотов отчета.
+- `DEFENSE.md` - краткий сценарий защиты;
+- `screenshots/` - каталог со скриншотами для отчета.
 
 ## 5. Описание API
 
@@ -120,8 +137,8 @@ curl.exe http://127.0.0.1:8000/bachelor
 
 ## 6. Локальный запуск
 
-Для локального запуска нужно создать виртуальное окружение, установить зависимости
-и запустить приложение через Uvicorn.
+Для локального запуска нужно создать виртуальное окружение, установить
+зависимости и запустить приложение через Uvicorn.
 
 ```bash
 python -m venv venv
@@ -130,11 +147,11 @@ pip install -r requirements.txt
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-После запуска приложение будет доступно по адресам:
+Swagger UI подтверждает, что приложение успешно запущено и все эндпоинты
+доступны для тестирования.
 
-- `http://127.0.0.1:8000/`;
-- `http://127.0.0.1:8000/docs`;
-- `http://127.0.0.1:8000/health`.
+![Рисунок 3. Swagger UI FastAPI](screenshots/03-swagger-ui.jpg)
+*Рисунок 3. Интерфейс Swagger UI по адресу `/docs`.*
 
 ## 7. Docker
 
@@ -149,10 +166,8 @@ curl.exe http://127.0.0.1:8000/bachelor
 docker rm -f pupils-bachelor
 ```
 
-После запуска контейнера сервис должен отвечать на порту `8000`.
-
-Если локальный порт `8000` уже занят другим сервисом, можно пробросить контейнер
-на порт `8001`:
+На локальной машине порт `8000` уже был занят другим сервисом, поэтому для
+демонстрации использовался внешний порт `8001`.
 
 ```powershell
 docker rm -f pupils-bachelor
@@ -162,16 +177,34 @@ curl.exe http://127.0.0.1:8001/health
 curl.exe http://127.0.0.1:8001/bachelor
 ```
 
+![Рисунок 4. Сборка Docker-образа](screenshots/04-docker-build.jpg)
+*Рисунок 4. Сборка Docker-образа `pupils-bachelor-openstack-service`.*
+
+![Рисунок 5. Запуск контейнера Docker](screenshots/05-docker-container.jpg)
+*Рисунок 5. Контейнер `pupils-bachelor` запущен и слушает порт `8001`.*
+
+![Рисунок 6. Проверка API локального контейнера](screenshots/06-local-api-check.jpg)
+*Рисунок 6. Проверка `/health` и `/bachelor` для локального Docker-контейнера.*
+
 ## 8. Публикация Docker-образа
 
-Для развертывания через OpenStack VM и Kubernetes образ нужно опубликовать в
-Docker Hub. Вместо `YOUR_DOCKERHUB_LOGIN` необходимо указать свой логин Docker Hub.
+Для развертывания через OpenStack VM и Kubernetes образ был опубликован в Docker
+Hub.
 
 ```bash
 docker login
 docker tag pupils-bachelor-openstack-service YOUR_DOCKERHUB_LOGIN/pupils-bachelor-openstack-service:v1
 docker push YOUR_DOCKERHUB_LOGIN/pupils-bachelor-openstack-service:v1
 ```
+
+В текущем проекте используется образ:
+
+```text
+xzxzxzxze/pupils-bachelor-openstack-service:v1
+```
+
+![Рисунок 7. Docker Hub с опубликованным образом](screenshots/07-docker-hub.jpg)
+*Рисунок 7. Репозиторий Docker Hub с опубликованным образом проекта.*
 
 После публикации этот образ используется в:
 
@@ -187,48 +220,15 @@ Terraform-конфигурация находится в каталоге `terra
 - приватную сеть `pupils-network`;
 - подсеть `pupils-subnet`;
 - роутер `pupils-router`;
-- подключение роутера к внешней сети `public`;
+- подключение роутера к внешней сети;
 - Security Group `pupils-bachelor-sg`;
 - правила для портов `22/tcp` и `8000/tcp`;
-- исходящий трафик через стандартное egress-правило OpenStack;
 - SSH keypair;
 - сетевой порт для VM;
 - виртуальную машину `pupils-bachelor-vm`;
 - Floating IP;
 - привязку Floating IP к VM;
-- cloud-init запуск Docker-контейнера с приложением.
-
-Перед запуском Terraform нужно подготовить OpenStack-профиль `myopenstack` в
-`clouds.yaml`. Файл `clouds.yaml` должен храниться локально и не должен попадать
-в GitHub. Имя пользователя в учебных примерах обозначается как `YOUR_USERNAME`.
-Учетные данные OpenStack нужно брать из личного кабинета OpenStack или RC-файла,
-выданного облачной платформой.
-
-Проверить доступ к OpenStack можно так:
-
-```bash
-openstack --os-cloud myopenstack token issue
-openstack --os-cloud myopenstack image list
-openstack --os-cloud myopenstack flavor list
-openstack --os-cloud myopenstack network list
-```
-
-В `terraform.tfvars` нужно указать учебные значения или значения своего облака.
-Пример значений:
-
-```hcl
-os_cloud              = "myopenstack"
-image_name            = "Ubuntu 22.04"
-flavor_name           = "m1.small"
-external_network_name = "public"
-public_key_path       = "~/.ssh/id_ed25519.pub"
-keypair_name          = "pupils-bachelor-key"
-docker_image          = "YOUR_DOCKERHUB_LOGIN/pupils-bachelor-openstack-service:v1"
-ssh_cidr              = "0.0.0.0/0"
-app_cidr              = "0.0.0.0/0"
-subnet_cidr           = "10.10.0.0/24"
-dns_nameservers       = ["1.1.1.1", "8.8.8.8"]
-```
+- cloud-init для установки Docker и запуска контейнера.
 
 Команды запуска Terraform:
 
@@ -239,20 +239,23 @@ terraform init
 terraform validate
 terraform plan
 terraform apply
+terraform state list
 terraform output
 ```
 
-После успешного выполнения Terraform выведет:
+После успешного выполнения Terraform были выведены:
 
 - `public_ip`;
 - `service_url`;
 - `health_url`;
 - `ssh_command`.
 
+![Рисунок 8. Terraform apply, state list и output](screenshots/08-terraform-apply-state-output.jpg)
+*Рисунок 8. Успешное выполнение `terraform apply`, список ресурсов и outputs.*
+
 ## 10. Проверка работы сервиса в OpenStack
 
-После создания ресурсов нужно взять Floating IP из `terraform output` или из
-OpenStack Dashboard и выполнить проверки.
+После создания ресурсов сервис был проверен по Floating IP.
 
 ```bash
 curl.exe http://<FLOATING_IP>:8000/health
@@ -262,7 +265,23 @@ sudo docker ps
 sudo docker logs pupils-bachelor
 ```
 
-Если `/health` возвращает `{"status":"ok"}`, приложение успешно запущено на VM.
+В OpenStack Dashboard видно, что виртуальная машина `pupils-bachelor-vm`
+создана, активна и получила внутренний и внешний IP-адреса.
+
+![Рисунок 9. Виртуальная машина в OpenStack](screenshots/09-openstack-instance.jpg)
+*Рисунок 9. Инстанс `pupils-bachelor-vm` в OpenStack Dashboard.*
+
+Проверка по Floating IP показывает, что `/health` возвращает статус `ok`, а
+`/bachelor` отдает корректный список кандидатов.
+
+![Рисунок 10. Проверка сервиса по Floating IP](screenshots/10-openstack-api-check.jpg)
+*Рисунок 10. Проверка `/health` и `/bachelor` на развернутом OpenStack-сервисе.*
+
+Дополнительная проверка по SSH подтверждает, что на виртуальной машине работает
+Docker-контейнер `pupils-bachelor`.
+
+![Рисунок 11. Проверка контейнера на VM](screenshots/11-vm-docker-check.jpg)
+*Рисунок 11. Вывод `sudo docker ps` и `sudo docker logs pupils-bachelor` на VM.*
 
 ## 11. Kubernetes / Minikube
 
@@ -272,9 +291,8 @@ sudo docker logs pupils-bachelor
 - `deployment.yaml` - Deployment на 2 реплики;
 - `service.yaml` - NodePort Service на порту `30080`.
 
-В текущей конфигурации `k8s/deployment.yaml` использует опубликованный образ
-`xzxzxzxze/pupils-bachelor-openstack-service:v1`. При запуске из своего Docker Hub
-аккаунта замените image на свой логин.
+Для корректного развертывания манифесты применялись по отдельности в правильном
+порядке:
 
 ```powershell
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
@@ -287,13 +305,13 @@ kubectl get svc -n pupils-bachelor
 kubectl get endpoints -n pupils-bachelor
 ```
 
-Сервис Kubernetes использует:
+Результат развертывания показывает, что Deployment успешно раскатился, два pod'а
+перешли в состояние `Running`, а Service получил endpoints.
 
-- `port: 8000`;
-- `targetPort: 8000`;
-- `nodePort: 30080`.
+![Рисунок 12. Развертывание в Kubernetes](screenshots/12-k8s-rollout-pods-service.jpg)
+*Рисунок 12. Rollout Deployment, список pod'ов, Service и endpoints в Kubernetes.*
 
-Для локальной проверки API через Kubernetes удобно использовать `port-forward`:
+Для локальной проверки API через Kubernetes использовался `port-forward`.
 
 ```powershell
 kubectl port-forward -n pupils-bachelor service/pupils-bachelor-service 18080:8000
@@ -306,48 +324,26 @@ curl.exe http://127.0.0.1:18080/health
 curl.exe http://127.0.0.1:18080/bachelor
 ```
 
-Если `kubectl port-forward` сообщает `timed out waiting for the condition`,
-проверьте, что Deployment создан и Service имеет endpoints:
+![Рисунок 13. Проверка Kubernetes через port-forward](screenshots/13-k8s-port-forward-check.jpg)
+*Рисунок 13. Проверка `/health` и `/bachelor` через `kubectl port-forward`.*
 
-```powershell
-kubectl get deployment -n pupils-bachelor
-kubectl get pods -n pupils-bachelor
-kubectl get endpoints -n pupils-bachelor
-```
+## 12. Скриншоты, включенные в отчет
 
-## 12. Скриншоты для отчета
+В отчет включены следующие подтверждающие материалы:
 
-Для отчета студент должен сделать и сохранить скриншоты в каталог `screenshots/`.
-Минимальный набор скриншотов:
-
-1. GitHub-репозиторий `nxnk88/pupils-bachelor-openstack-service` с файлами проекта.
-2. `tree /F` в корне проекта.
-3. Swagger UI `/docs` локального или OpenStack-сервиса.
-4. Проверка `/health`: `curl.exe http://127.0.0.1:8001/health` или `curl.exe http://<FLOATING_IP>:8000/health`.
-5. Проверка `/students`.
-6. Проверка `/bachelor` с `total_candidates`.
-7. Сборка Docker-образа: `docker build -t pupils-bachelor-openstack-service .`.
-8. Запуск Docker-контейнера и `docker ps`.
-9. Docker Hub с опубликованным образом `pupils-bachelor-openstack-service:v1`.
-10. `terraform init`.
-11. `terraform validate`.
-12. `terraform plan` с планом создания ресурсов.
-13. `terraform apply` с успешным завершением.
-14. `terraform state list` со списком ресурсов OpenStack.
-15. `terraform output` с `public_ip`, `service_url`, `health_url`, `ssh_command`.
-16. VM `pupils-bachelor-vm` в OpenStack Dashboard.
-17. Сеть `pupils-network`, подсеть `pupils-subnet` и роутер `pupils-router` в OpenStack Dashboard.
-18. Security Group `pupils-bachelor-sg` с портами `22` и `8000`.
-19. Floating IP, привязанный к VM.
-20. Проверка сервиса по Floating IP: `/health` и `/bachelor`.
-21. SSH-подключение к VM: `ssh ubuntu@<FLOATING_IP>`.
-22. `sudo docker ps` и `sudo docker logs pupils-bachelor` на VM.
-23. `kubectl get pods -n pupils-bachelor` с двумя pod'ами `Running`.
-24. `kubectl get svc -n pupils-bachelor` с `NodePort`.
-25. `kubectl get endpoints -n pupils-bachelor` с IP pod'ов.
-26. Проверка Kubernetes через port-forward: `curl.exe http://127.0.0.1:18080/health` и `/bachelor`.
-
-Краткий сценарий показа преподавателю вынесен в файл `DEFENSE.md`.
+1. [screenshots/01-github-repository.jpg](screenshots/01-github-repository.jpg) - репозиторий проекта на GitHub.
+2. [screenshots/02-project-tree.jpg](screenshots/02-project-tree.jpg) - структура локального проекта.
+3. [screenshots/03-swagger-ui.jpg](screenshots/03-swagger-ui.jpg) - Swagger UI FastAPI.
+4. [screenshots/04-docker-build.jpg](screenshots/04-docker-build.jpg) - сборка Docker-образа.
+5. [screenshots/05-docker-container.jpg](screenshots/05-docker-container.jpg) - работающий Docker-контейнер.
+6. [screenshots/06-local-api-check.jpg](screenshots/06-local-api-check.jpg) - локальная проверка `/health` и `/bachelor`.
+7. [screenshots/07-docker-hub.jpg](screenshots/07-docker-hub.jpg) - опубликованный образ в Docker Hub.
+8. [screenshots/08-terraform-apply-state-output.jpg](screenshots/08-terraform-apply-state-output.jpg) - `terraform apply`, `terraform state list`, `terraform output`.
+9. [screenshots/09-openstack-instance.jpg](screenshots/09-openstack-instance.jpg) - виртуальная машина в OpenStack Dashboard.
+10. [screenshots/10-openstack-api-check.jpg](screenshots/10-openstack-api-check.jpg) - проверка сервиса по Floating IP.
+11. [screenshots/11-vm-docker-check.jpg](screenshots/11-vm-docker-check.jpg) - `docker ps` и `docker logs` на VM.
+12. [screenshots/12-k8s-rollout-pods-service.jpg](screenshots/12-k8s-rollout-pods-service.jpg) - Kubernetes rollout, pod'ы, service и endpoints.
+13. [screenshots/13-k8s-port-forward-check.jpg](screenshots/13-k8s-port-forward-check.jpg) - проверка Kubernetes через `port-forward`.
 
 ## 13. Очистка ресурсов
 
@@ -385,7 +381,17 @@ FastAPI реализует API для работы со студентами и 
 публикации в Docker Hub, развертыванию в OpenStack с помощью Terraform и запуску
 в Kubernetes / Minikube.
 
-Важно: не храните в GitHub пароли, токены, `clouds.yaml`, `.env`,
-`terraform.tfstate` и приватные SSH-ключи. Файл `terraform.tfvars` также не должен
-попадать в репозиторий, если содержит реальные данные OpenStack или другие
-персональные значения.
+По итогам выполнения работы были подтверждены все основные этапы:
+
+- разработка веб-сервиса на FastAPI;
+- сборка и запуск Docker-контейнера;
+- публикация образа в Docker Hub;
+- автоматическое создание инфраструктуры в OpenStack через Terraform;
+- запуск контейнера на VM через cloud-init;
+- развертывание приложения в Kubernetes и проверка его доступности.
+
+Краткий сценарий показа преподавателю вынесен в файл `DEFENSE.md`.
+
+Важно: не хранить в GitHub пароли, токены, `clouds.yaml`, `.env`,
+`terraform.tfstate` и приватные SSH-ключи. Файл `terraform.tfvars` также не
+должен попадать в репозиторий, если содержит реальные данные OpenStack.
