@@ -65,6 +65,7 @@
 ├── .dockerignore
 ├── .gitignore
 ├── README.md
+├── DEFENSE.md
 ├── screenshots/
 │   └── .gitkeep
 ├── terraform-openstack/
@@ -88,6 +89,7 @@
 - `Dockerfile` - инструкция сборки Docker-образа;
 - `terraform-openstack/` - Terraform-конфигурация для OpenStack;
 - `k8s/` - Kubernetes-манифесты;
+- `DEFENSE.md` - краткий сценарий защиты и список скриншотов;
 - `screenshots/` - каталог для скриншотов отчета.
 
 ## 5. Описание API
@@ -107,11 +109,14 @@
 Пример проверки API:
 
 ```bash
-curl http://127.0.0.1:8000/
-curl http://127.0.0.1:8000/health
-curl http://127.0.0.1:8000/students
-curl http://127.0.0.1:8000/bachelor
+curl.exe http://127.0.0.1:8000/
+curl.exe http://127.0.0.1:8000/health
+curl.exe http://127.0.0.1:8000/students
+curl.exe http://127.0.0.1:8000/bachelor
 ```
+
+В PowerShell рекомендуется использовать именно `curl.exe`, потому что команда
+`curl` может быть псевдонимом `Invoke-WebRequest`.
 
 ## 6. Локальный запуск
 
@@ -139,11 +144,23 @@ Docker используется для упаковки FastAPI-приложен
 docker build -t pupils-bachelor-openstack-service .
 docker run -d --name pupils-bachelor -p 8000:8000 pupils-bachelor-openstack-service
 docker ps
-curl http://127.0.0.1:8000/health
+curl.exe http://127.0.0.1:8000/health
+curl.exe http://127.0.0.1:8000/bachelor
 docker rm -f pupils-bachelor
 ```
 
 После запуска контейнера сервис должен отвечать на порту `8000`.
+
+Если локальный порт `8000` уже занят другим сервисом, можно пробросить контейнер
+на порт `8001`:
+
+```powershell
+docker rm -f pupils-bachelor
+docker run -d --name pupils-bachelor -p 8001:8000 pupils-bachelor-openstack-service
+docker ps
+curl.exe http://127.0.0.1:8001/health
+curl.exe http://127.0.0.1:8001/bachelor
+```
 
 ## 8. Публикация Docker-образа
 
@@ -238,8 +255,8 @@ terraform output
 OpenStack Dashboard и выполнить проверки.
 
 ```bash
-curl http://<FLOATING_IP>:8000/health
-curl http://<FLOATING_IP>:8000/bachelor
+curl.exe http://<FLOATING_IP>:8000/health
+curl.exe http://<FLOATING_IP>:8000/bachelor
 ssh ubuntu@<FLOATING_IP>
 sudo docker ps
 sudo docker logs pupils-bachelor
@@ -259,12 +276,15 @@ sudo docker logs pupils-bachelor
 `xzxzxzxze/pupils-bachelor-openstack-service:v1`. При запуске из своего Docker Hub
 аккаунта замените image на свой логин.
 
-```bash
-minikube start
-kubectl apply -f k8s/
+```powershell
+& "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
+kubectl apply -f .\k8s\namespace.yaml
+kubectl apply -f .\k8s\deployment.yaml
+kubectl apply -f .\k8s\service.yaml
+kubectl rollout status deployment/pupils-bachelor-deployment -n pupils-bachelor
 kubectl get pods -n pupils-bachelor
 kubectl get svc -n pupils-bachelor
-minikube service pupils-bachelor-service -n pupils-bachelor
+kubectl get endpoints -n pupils-bachelor
 ```
 
 Сервис Kubernetes использует:
@@ -273,30 +293,61 @@ minikube service pupils-bachelor-service -n pupils-bachelor
 - `targetPort: 8000`;
 - `nodePort: 30080`.
 
+Для локальной проверки API через Kubernetes удобно использовать `port-forward`:
+
+```powershell
+kubectl port-forward -n pupils-bachelor service/pupils-bachelor-service 18080:8000
+```
+
+В другом окне PowerShell:
+
+```powershell
+curl.exe http://127.0.0.1:18080/health
+curl.exe http://127.0.0.1:18080/bachelor
+```
+
+Если `kubectl port-forward` сообщает `timed out waiting for the condition`,
+проверьте, что Deployment создан и Service имеет endpoints:
+
+```powershell
+kubectl get deployment -n pupils-bachelor
+kubectl get pods -n pupils-bachelor
+kubectl get endpoints -n pupils-bachelor
+```
+
 ## 12. Скриншоты для отчета
 
-Для отчета студент должен сделать и сохранить скриншоты в каталог `screenshots/`:
+Для отчета студент должен сделать и сохранить скриншоты в каталог `screenshots/`.
+Минимальный набор скриншотов:
 
-1. GitHub-репозиторий.
-2. Локальный запуск FastAPI.
-3. Swagger UI `/docs`.
-4. Проверка `/health`.
+1. GitHub-репозиторий `nxnk88/pupils-bachelor-openstack-service` с файлами проекта.
+2. `tree /F` в корне проекта.
+3. Swagger UI `/docs` локального или OpenStack-сервиса.
+4. Проверка `/health`: `curl.exe http://127.0.0.1:8001/health` или `curl.exe http://<FLOATING_IP>:8000/health`.
 5. Проверка `/students`.
-6. Проверка `/bachelor`.
-7. Сборка Docker-образа.
-8. Запуск Docker-контейнера.
-9. Docker Hub с опубликованным образом.
+6. Проверка `/bachelor` с `total_candidates`.
+7. Сборка Docker-образа: `docker build -t pupils-bachelor-openstack-service .`.
+8. Запуск Docker-контейнера и `docker ps`.
+9. Docker Hub с опубликованным образом `pupils-bachelor-openstack-service:v1`.
 10. `terraform init`.
-11. `terraform plan`.
-12. `terraform apply`.
-13. VM в OpenStack Dashboard.
-14. Security Group в OpenStack.
-15. Floating IP.
-16. Проверка сервиса по Floating IP.
-17. SSH-подключение к VM.
-18. `docker ps` на VM.
-19. `kubectl get pods`.
-20. `kubectl get svc`.
+11. `terraform validate`.
+12. `terraform plan` с планом создания ресурсов.
+13. `terraform apply` с успешным завершением.
+14. `terraform state list` со списком ресурсов OpenStack.
+15. `terraform output` с `public_ip`, `service_url`, `health_url`, `ssh_command`.
+16. VM `pupils-bachelor-vm` в OpenStack Dashboard.
+17. Сеть `pupils-network`, подсеть `pupils-subnet` и роутер `pupils-router` в OpenStack Dashboard.
+18. Security Group `pupils-bachelor-sg` с портами `22` и `8000`.
+19. Floating IP, привязанный к VM.
+20. Проверка сервиса по Floating IP: `/health` и `/bachelor`.
+21. SSH-подключение к VM: `ssh ubuntu@<FLOATING_IP>`.
+22. `sudo docker ps` и `sudo docker logs pupils-bachelor` на VM.
+23. `kubectl get pods -n pupils-bachelor` с двумя pod'ами `Running`.
+24. `kubectl get svc -n pupils-bachelor` с `NodePort`.
+25. `kubectl get endpoints -n pupils-bachelor` с IP pod'ов.
+26. Проверка Kubernetes через port-forward: `curl.exe http://127.0.0.1:18080/health` и `/bachelor`.
+
+Краткий сценарий показа преподавателю вынесен в файл `DEFENSE.md`.
 
 ## 13. Очистка ресурсов
 
@@ -316,8 +367,10 @@ terraform destroy
 Ресурсы Kubernetes:
 
 ```bash
-kubectl delete -f k8s/
-minikube stop
+kubectl delete -f .\k8s\service.yaml --ignore-not-found=true
+kubectl delete -f .\k8s\deployment.yaml --ignore-not-found=true
+kubectl delete -f .\k8s\namespace.yaml --ignore-not-found=true
+& "$env:TEMP\minikube-check\minikube-v1.34.0.exe" delete
 ```
 
 После удаления ресурсов рекомендуется проверить, что в OpenStack не остались

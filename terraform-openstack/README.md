@@ -59,6 +59,8 @@ terraform init
 terraform validate
 terraform plan
 terraform apply
+terraform state list
+terraform output
 ```
 
 После выполнения Terraform выведет `public_ip`, `service_url`, `health_url` и
@@ -67,9 +69,12 @@ terraform apply
 ## 5. Проверка приложения
 
 ```bash
-curl http://<FLOATING_IP>:8000/health
-curl http://<FLOATING_IP>:8000/bachelor
+curl.exe http://<FLOATING_IP>:8000/health
+curl.exe http://<FLOATING_IP>:8000/bachelor
 ```
+
+В PowerShell лучше использовать `curl.exe`, чтобы не попасть в псевдоним
+`Invoke-WebRequest`.
 
 ## 6. Удаление ресурсов
 
