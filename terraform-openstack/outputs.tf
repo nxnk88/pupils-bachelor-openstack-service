@@ -13,6 +13,11 @@ output "health_url" {
   value       = "http://${openstack_networking_floatingip_v2.vm.address}:8000/health"
 }
 
+output "audit_ready_url" {
+  description = "Workstation audit readiness URL."
+  value       = "http://${openstack_networking_floatingip_v2.vm.address}:8000/audit-ready"
+}
+
 output "ssh_command" {
   description = "SSH command for the virtual machine."
   value       = "ssh ubuntu@${openstack_networking_floatingip_v2.vm.address}"

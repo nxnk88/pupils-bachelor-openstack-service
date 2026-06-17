@@ -1,19 +1,18 @@
 # Сценарий защиты проекта
 
-Проект: `pupils-bachelor-openstack-service`
+Проект: `protected-workstation-audit-service`
 
 GitHub: `https://github.com/nxnk88/pupils-bachelor-openstack-service`
 
 ## 1. Что сказать в начале
 
-Это учебный DevOps-проект. В нем реализован FastAPI-сервис для определения
-студентов, которые могут стать бакалаврами в области защищенных
-автоматизированных систем.
+Это учебный DevOps-проект для аудита защищенности рабочих станций. Сервис
+определяет, какие рабочие станции готовы к вводу в защищенный контур.
 
 Проект показывает полный цикл:
 
 - разработка API на FastAPI;
-- обработка данных студентов через pandas;
+- обработка данных рабочих станций через pandas;
 - сборка Docker-образа;
 - публикация образа в Docker Hub;
 - развертывание инфраструктуры OpenStack через Terraform;
@@ -30,7 +29,7 @@ git remote -v
 
 Что говорить:
 
-- `app.py` - FastAPI-приложение и бизнес-логика;
+- `app.py` - FastAPI-приложение и логика аудита;
 - `Dockerfile` - сборка Docker-образа;
 - `terraform-openstack/` - инфраструктура OpenStack;
 - `k8s/` - Kubernetes-манифесты;
@@ -39,32 +38,30 @@ git remote -v
 
 ## 3. Локальная проверка Docker
 
-На этой машине порт `8000` может быть занят другим сервисом, поэтому для
-локальной демонстрации используется внешний порт `8001`.
-
 ```powershell
 cd C:\Users\bob\Documents\sharay
 
-docker build -t pupils-bachelor-openstack-service .
-docker rm -f pupils-bachelor
-docker run -d --name pupils-bachelor -p 8001:8000 pupils-bachelor-openstack-service
+docker build -t protected-workstation-audit-service .
+docker rm -f workstation-audit
+docker run -d --name workstation-audit -p 8001:8000 protected-workstation-audit-service
 
 docker ps
 curl.exe http://127.0.0.1:8001/health
-curl.exe http://127.0.0.1:8001/bachelor
+curl.exe http://127.0.0.1:8001/audit-ready
 ```
 
 Что говорить:
 
-Контейнер внутри слушает порт `8000`, а наружу на локальной машине проброшен
+Контейнер внутри слушает порт `8000`, а наружу на локальной машине используется
 порт `8001`. Если `/health` возвращает `{"status":"ok"}`, приложение запущено.
-Если `/bachelor` возвращает `total_candidates`, работает бизнес-логика.
+Если `/audit-ready` возвращает список готовых рабочих станций, работает
+бизнес-логика сервиса.
 
 ## 4. Docker Hub
 
 ```powershell
-docker tag pupils-bachelor-openstack-service xzxzxzxze/pupils-bachelor-openstack-service:v1
-docker push xzxzxzxze/pupils-bachelor-openstack-service:v1
+docker tag protected-workstation-audit-service YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
+docker push YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
 ```
 
 Что говорить:
@@ -98,27 +95,26 @@ terraform output
 
 Что говорить:
 
-Terraform создает сеть `pupils-network`, подсеть `pupils-subnet`, роутер
-`pupils-router`, security group `pupils-bachelor-sg`, SSH keypair, сетевой порт,
-VM `pupils-bachelor-vm`, Floating IP и привязку Floating IP к VM. Через
+Terraform создает сеть `workstation-audit-network`, подсеть
+`workstation-audit-subnet`, роутер `workstation-audit-router`, security group
+`workstation-audit-sg`, SSH keypair, сетевой порт, VM
+`workstation-audit-vm`, Floating IP и привязку Floating IP к VM. Через
 `cloud-init` на VM устанавливается Docker и запускается контейнер
-`pupils-bachelor`.
+`workstation-audit`.
 
 Проверка сервиса в OpenStack:
 
 ```powershell
 curl.exe http://<FLOATING_IP>:8000/health
-curl.exe http://<FLOATING_IP>:8000/bachelor
+curl.exe http://<FLOATING_IP>:8000/audit-ready
 ```
-
-`<FLOATING_IP>` нужно взять из `terraform output`.
 
 ## 6. Проверка VM по SSH
 
 ```powershell
 ssh ubuntu@<FLOATING_IP>
 sudo docker ps
-sudo docker logs pupils-bachelor
+sudo docker logs workstation-audit
 ```
 
 Что говорить:
@@ -127,9 +123,6 @@ sudo docker logs pupils-bachelor
 Docker-контейнер с приложением.
 
 ## 7. Kubernetes / Minikube
-
-Важно применять манифесты по одному, чтобы namespace точно был создан до
-Deployment и Service.
 
 ```powershell
 cd C:\Users\bob\Documents\sharay
@@ -140,73 +133,65 @@ kubectl apply -f .\k8s\namespace.yaml
 kubectl apply -f .\k8s\deployment.yaml
 kubectl apply -f .\k8s\service.yaml
 
-kubectl rollout status deployment/pupils-bachelor-deployment -n pupils-bachelor
-kubectl get pods -n pupils-bachelor
-kubectl get svc -n pupils-bachelor
-kubectl get endpoints -n pupils-bachelor
+kubectl rollout status deployment/workstation-audit-deployment -n workstation-audit
+kubectl get pods -n workstation-audit
+kubectl get svc -n workstation-audit
+kubectl get endpoints -n workstation-audit
 ```
 
 Что говорить:
 
 Deployment запускает две реплики приложения. Service типа `NodePort` направляет
 трафик на pod'ы. Команда `kubectl get endpoints` подтверждает, что service
-действительно связан с работающими pod'ами.
+связан с работающими pod'ами.
 
 Проверка через port-forward:
 
 ```powershell
-kubectl port-forward -n pupils-bachelor service/pupils-bachelor-service 18080:8000
+kubectl port-forward -n workstation-audit service/workstation-audit-service 18080:8000
 ```
 
 В другом окне PowerShell:
 
 ```powershell
 curl.exe http://127.0.0.1:18080/health
-curl.exe http://127.0.0.1:18080/bachelor
+curl.exe http://127.0.0.1:18080/audit-ready
 ```
 
 ## 8. Что показать в OpenStack Dashboard
 
-- VM `pupils-bachelor-vm`;
-- сеть `pupils-network`;
-- подсеть `pupils-subnet`;
-- роутер `pupils-router`;
-- security group `pupils-bachelor-sg`;
+- VM `workstation-audit-vm`;
+- сеть `workstation-audit-network`;
+- подсеть `workstation-audit-subnet`;
+- роутер `workstation-audit-router`;
+- security group `workstation-audit-sg`;
 - правила security group для портов `22` и `8000`;
 - Floating IP, привязанный к VM.
 
-## 9. Какие скриншоты сделать
+## 9. Как объяснить предметную логику
 
-1. GitHub-репозиторий с файлами проекта.
-2. `tree /F` в корне проекта.
-3. Swagger UI `/docs`.
-4. `curl.exe http://127.0.0.1:8001/health`.
-5. `curl.exe http://127.0.0.1:8001/bachelor`.
-6. `docker build -t pupils-bachelor-openstack-service .`.
-7. `docker ps` с контейнером `pupils-bachelor`.
-8. Docker Hub с образом `pupils-bachelor-openstack-service:v1`.
-9. `terraform init`.
-10. `terraform validate`.
-11. `terraform plan`.
-12. `terraform apply`.
-13. `terraform state list`.
-14. `terraform output`.
-15. VM в OpenStack Dashboard.
-16. Network/Subnet/Router в OpenStack Dashboard.
-17. Security Group с портами `22` и `8000`.
-18. Floating IP.
-19. `curl.exe http://<FLOATING_IP>:8000/health`.
-20. `curl.exe http://<FLOATING_IP>:8000/bachelor`.
-21. SSH на VM.
-22. `sudo docker ps` на VM.
-23. `sudo docker logs pupils-bachelor` на VM.
-24. `kubectl get pods -n pupils-bachelor`.
-25. `kubectl get svc -n pupils-bachelor`.
-26. `kubectl get endpoints -n pupils-bachelor`.
-27. Проверка Kubernetes через `curl.exe http://127.0.0.1:18080/health`.
-28. Проверка Kubernetes через `curl.exe http://127.0.0.1:18080/bachelor`.
+В сервисе хранится набор рабочих станций. Для каждой станции есть:
 
-## 10. Очистка ресурсов
+- имя хоста;
+- подразделение;
+- оценка защищенности;
+- признак включенного антивируса;
+- признак шифрования диска.
+
+Рабочая станция считается готовой к вводу в защищенный контур, если:
+
+- `hardening_score >= 85`;
+- антивирус включен;
+- шифрование диска включено.
+
+## 10. Важное замечание по скриншотам
+
+Скриншоты в отчете сохранены как иллюстрации этапов технологического контура
+Docker, Terraform, OpenStack и Kubernetes. Они показывают реальную
+последовательность разворачивания и проверки, поэтому в отдельных архивных
+изображениях могут встречаться старые технические имена.
+
+## 11. Очистка ресурсов
 
 OpenStack:
 
@@ -223,11 +208,5 @@ kubectl delete -f .\k8s\service.yaml --ignore-not-found=true
 kubectl delete -f .\k8s\deployment.yaml --ignore-not-found=true
 kubectl delete -f .\k8s\namespace.yaml --ignore-not-found=true
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" delete
-docker rm -f pupils-bachelor
+docker rm -f workstation-audit
 ```
-
-## 11. Финальная фраза
-
-В результате один FastAPI-сервис проходит полный DevOps-цикл: код приложения,
-Docker-образ, публикация образа, инфраструктура OpenStack через Terraform,
-автоматический запуск контейнера на VM и Kubernetes-развертывание в Minikube.

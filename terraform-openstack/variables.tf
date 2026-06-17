@@ -34,7 +34,7 @@ variable "public_key_path" {
 variable "keypair_name" {
   description = "Name of the SSH keypair created in OpenStack."
   type        = string
-  default     = "pupils-bachelor-key"
+  default     = "workstation-audit-key"
 }
 
 variable "docker_image" {

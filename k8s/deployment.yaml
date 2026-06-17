@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pupils-bachelor-deployment
-  namespace: pupils-bachelor
+  name: workstation-audit-deployment
+  namespace: workstation-audit
   labels:
-    app: pupils-bachelor
+    app: workstation-audit
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: pupils-bachelor
+      app: workstation-audit
   template:
     metadata:
       labels:
-        app: pupils-bachelor
+        app: workstation-audit
     spec:
       containers:
-        - name: pupils-bachelor
-          image: xzxzxzxze/pupils-bachelor-openstack-service:v1
+        - name: workstation-audit
+          image: YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
           ports:
             - containerPort: 8000
           readinessProbe:

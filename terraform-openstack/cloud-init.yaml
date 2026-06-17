@@ -7,7 +7,7 @@ packages:
   - docker.io
 
 write_files:
-  - path: /root/run-pupils-bachelor.sh
+  - path: /root/run-workstation-audit.sh
     permissions: "0755"
     owner: root:root
     content: |
@@ -18,12 +18,12 @@ write_files:
       systemctl start docker
 
       docker pull ${docker_image}
-      docker rm -f pupils-bachelor || true
+      docker rm -f workstation-audit || true
       docker run -d \
-        --name pupils-bachelor \
+        --name workstation-audit \
         --restart unless-stopped \
         -p 8000:8000 \
         ${docker_image}
 
 runcmd:
-  - /root/run-pupils-bachelor.sh
+  - /root/run-workstation-audit.sh

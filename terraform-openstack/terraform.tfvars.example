@@ -5,7 +5,7 @@ external_network_name = "public"
 
 public_key_path = "~/.ssh/id_ed25519.pub"
 
-docker_image = "YOUR_DOCKERHUB_LOGIN/pupils-bachelor-openstack-service:v1"
+docker_image = "YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1"
 
 ssh_cidr        = "0.0.0.0/0"
 app_cidr        = "0.0.0.0/0"

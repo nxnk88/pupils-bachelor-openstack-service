@@ -17,12 +17,12 @@ data "openstack_networking_network_v2" "external" {
 }
 
 resource "openstack_networking_network_v2" "private" {
-  name           = "pupils-network"
+  name           = "workstation-audit-network"
   admin_state_up = true
 }
 
 resource "openstack_networking_subnet_v2" "private" {
-  name            = "pupils-subnet"
+  name            = "workstation-audit-subnet"
   network_id      = openstack_networking_network_v2.private.id
   cidr            = var.subnet_cidr
   ip_version      = 4
@@ -30,7 +30,7 @@ resource "openstack_networking_subnet_v2" "private" {
 }
 
 resource "openstack_networking_router_v2" "router" {
-  name                = "pupils-router"
+  name                = "workstation-audit-router"
   admin_state_up      = true
   external_network_id = data.openstack_networking_network_v2.external.id
 }
@@ -41,8 +41,8 @@ resource "openstack_networking_router_interface_v2" "private" {
 }
 
 resource "openstack_networking_secgroup_v2" "app" {
-  name        = "pupils-bachelor-sg"
-  description = "Security group for pupils bachelor FastAPI service"
+  name        = "workstation-audit-sg"
+  description = "Security group for the protected workstation audit FastAPI service"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "ssh_ingress" {
@@ -71,7 +71,7 @@ resource "openstack_compute_keypair_v2" "app" {
 }
 
 resource "openstack_networking_port_v2" "vm" {
-  name               = "pupils-bachelor-port"
+  name               = "workstation-audit-port"
   network_id         = openstack_networking_network_v2.private.id
   admin_state_up     = true
   security_group_ids = [openstack_networking_secgroup_v2.app.id]
@@ -95,7 +95,7 @@ resource "openstack_networking_floatingip_associate_v2" "vm" {
 }
 
 resource "openstack_compute_instance_v2" "vm" {
-  name      = "pupils-bachelor-vm"
+  name      = "workstation-audit-vm"
   image_id  = data.openstack_images_image_v2.ubuntu.id
   flavor_id = var.flavor_id != "" ? var.flavor_id : data.openstack_compute_flavor_v2.vm[0].id
   key_pair  = openstack_compute_keypair_v2.app.name

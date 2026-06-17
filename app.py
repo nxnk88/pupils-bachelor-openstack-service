@@ -5,55 +5,61 @@ from fastapi import FastAPI, HTTPException, Query
 
 
 app = FastAPI(
-    title="pupils-bachelor-openstack-service",
+    title="protected-workstation-audit-service",
     description=(
-        "Учебный FastAPI-сервис для определения студентов, которые могут стать "
-        "бакалаврами в области защищенных автоматизированных систем."
+        "Учебный FastAPI-сервис для аудита рабочих станций, готовых к вводу "
+        "в защищенный контур."
     ),
     version="1.0.0",
 )
 
 
-students_data = [
+workstations_data = [
     {
-        "name": "Ivan Petrov",
-        "specialization": "Protected Automated Systems",
-        "grade": 5,
-        "course": 4,
+        "hostname": "ws-fin-01",
+        "department": "Finance",
+        "hardening_score": 92,
+        "antivirus_enabled": True,
+        "disk_encryption": True,
     },
     {
-        "name": "Anna Smirnova",
-        "specialization": "Information Security",
-        "grade": 4,
-        "course": 3,
+        "hostname": "ws-hr-02",
+        "department": "HR",
+        "hardening_score": 88,
+        "antivirus_enabled": True,
+        "disk_encryption": True,
     },
     {
-        "name": "Dmitry Sokolov",
-        "specialization": "Network Security",
-        "grade": 3,
-        "course": 3,
+        "hostname": "ws-dev-03",
+        "department": "Engineering",
+        "hardening_score": 79,
+        "antivirus_enabled": True,
+        "disk_encryption": False,
     },
     {
-        "name": "Maria Kuznetsova",
-        "specialization": "Protected Automated Systems",
-        "grade": 4,
-        "course": 2,
+        "hostname": "ws-soc-04",
+        "department": "Security Operations",
+        "hardening_score": 95,
+        "antivirus_enabled": True,
+        "disk_encryption": True,
     },
     {
-        "name": "Sergey Ivanov",
-        "specialization": "Secure Software Development",
-        "grade": 5,
-        "course": 3,
+        "hostname": "ws-ops-05",
+        "department": "Operations",
+        "hardening_score": 83,
+        "antivirus_enabled": False,
+        "disk_encryption": True,
     },
     {
-        "name": "Elena Morozova",
-        "specialization": "Information Security",
-        "grade": 5,
-        "course": 4,
+        "hostname": "ws-legal-06",
+        "department": "Legal",
+        "hardening_score": 87,
+        "antivirus_enabled": True,
+        "disk_encryption": True,
     },
 ]
 
-students_df = pd.DataFrame(students_data)
+workstations_df = pd.DataFrame(workstations_data)
 
 
 def dataframe_to_records(dataframe: pd.DataFrame) -> list[dict]:
@@ -63,10 +69,10 @@ def dataframe_to_records(dataframe: pd.DataFrame) -> list[dict]:
 @app.get("/")
 def read_root() -> dict:
     return {
-        "service": "pupils-bachelor-openstack-service",
+        "service": "protected-workstation-audit-service",
         "message": (
-            "Сервис определяет студентов, которые могут стать бакалаврами "
-            "в области защищенных автоматизированных систем."
+            "Сервис выполняет аудит рабочих станций и определяет системы, "
+            "готовые к вводу в защищенный контур."
         ),
         "docs": "/docs",
         "health": "/health",
@@ -78,46 +84,52 @@ def health_check() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/students")
-def get_students(
-    specialization: Optional[str] = Query(
+@app.get("/workstations")
+def get_workstations(
+    department: Optional[str] = Query(
         default=None,
-        description="Фильтр по специализации студента",
+        description="Фильтр по подразделению рабочей станции",
     )
 ) -> dict:
-    if specialization is None:
-        filtered_students = students_df
+    if department is None:
+        filtered_workstations = workstations_df
     else:
-        filtered_students = students_df[
-            students_df["specialization"].str.casefold() == specialization.casefold()
+        filtered_workstations = workstations_df[
+            workstations_df["department"].str.casefold() == department.casefold()
         ]
 
     return {
-        "count": len(filtered_students),
-        "students": dataframe_to_records(filtered_students),
+        "count": len(filtered_workstations),
+        "workstations": dataframe_to_records(filtered_workstations),
     }
 
 
-@app.get("/student/{name}")
-def get_student(name: str) -> dict:
-    student = students_df[students_df["name"].str.casefold() == name.casefold()]
+@app.get("/workstation/{hostname}")
+def get_workstation(hostname: str) -> dict:
+    workstation = workstations_df[
+        workstations_df["hostname"].str.casefold() == hostname.casefold()
+    ]
 
-    if student.empty:
-        raise HTTPException(status_code=404, detail="Student not found")
+    if workstation.empty:
+        raise HTTPException(status_code=404, detail="Workstation not found")
 
-    return dataframe_to_records(student)[0]
+    return dataframe_to_records(workstation)[0]
 
 
-@app.get("/bachelor")
-def get_bachelor_candidates() -> dict:
-    candidates = students_df[(students_df["grade"] >= 4) & (students_df["course"] >= 3)]
-    specialization_distribution = (
-        candidates["specialization"].value_counts().sort_index().to_dict()
+@app.get("/audit-ready")
+def get_audit_ready_workstations() -> dict:
+    ready_workstations = workstations_df[
+        (workstations_df["hardening_score"] >= 85)
+        & (workstations_df["antivirus_enabled"])
+        & (workstations_df["disk_encryption"])
+    ]
+    department_distribution = (
+        ready_workstations["department"].value_counts().sort_index().to_dict()
     )
 
     return {
-        "message": "Я стану бакалавром в области защищенных автоматизированных систем",
-        "total_candidates": len(candidates),
-        "specialization_distribution": specialization_distribution,
-        "candidates": dataframe_to_records(candidates),
+        "message": "Рабочая станция готова к вводу в защищенный контур",
+        "total_ready_workstations": len(ready_workstations),
+        "department_distribution": department_distribution,
+        "ready_workstations": dataframe_to_records(ready_workstations),
     }

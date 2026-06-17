@@ -1,7 +1,7 @@
 # Terraform OpenStack
 
 Эта конфигурация создает инфраструктуру OpenStack для сервиса
-`pupils-bachelor-openstack-service`: приватную сеть, подсеть, роутер,
+`protected-workstation-audit-service`: приватную сеть, подсеть, роутер,
 Security Group, SSH keypair, порт VM, виртуальную машину, Floating IP и запуск
 Docker-контейнера через cloud-init.
 
@@ -49,8 +49,6 @@ cp terraform.tfvars.example terraform.tfvars
 Отредактируйте `terraform.tfvars`: укажите реальные значения `image_name`,
 `flavor_name`, `external_network_name` и `docker_image`. Если OpenStack API
 медленно отдает список flavor, можно дополнительно указать `flavor_id`.
-Для корректной установки пакетов через cloud-init подсеть также задает DNS
-серверы через `dns_nameservers`.
 
 ## 4. Запуск Terraform
 
@@ -64,13 +62,13 @@ terraform output
 ```
 
 После выполнения Terraform выведет `public_ip`, `service_url`, `health_url` и
-`ssh_command`.
+`audit_ready_url`, `ssh_command`.
 
 ## 5. Проверка приложения
 
 ```bash
 curl.exe http://<FLOATING_IP>:8000/health
-curl.exe http://<FLOATING_IP>:8000/bachelor
+curl.exe http://<FLOATING_IP>:8000/audit-ready
 ```
 
 В PowerShell лучше использовать `curl.exe`, чтобы не попасть в псевдоним
