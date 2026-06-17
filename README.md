@@ -1,66 +1,48 @@
 # Отчет по дисциплине
-"Технология проектирования автоматизированных систем в защищенном исполнении"
+
+**"Технология проектирования автоматизированных систем в защищенном исполнении"**
 
 ## Тема работы
 
-Разработка и деплой веб-сервиса для аудита защищенности рабочих станций
+**Разработка и деплой веб-сервиса для аудита защищенности рабочих станций**
 
-## Студентs
+## Данные о работе
 
+**Проект:** `protected-workstation-audit-service`
 
-`gofman03`
-`aksenov04`
-`kopan05`
-## Дата выполнения
+**Студенты:** `gofman03`, `aksenov04`, `kopan05`
 
-`17.06.2026`
+**Дата выполнения:** `17.06.2026`
 
-## Название проекта
-
-`protected-workstation-audit-service`
+**GitHub:** `https://github.com/nxnk88/protected-workstation-audit-service`
 
 ## 1. Цель работы
 
-Цель работы - разработать учебный DevOps-проект
-`protected-workstation-audit-service`, который демонстрирует полный цикл
-подготовки приложения к запуску:
+Цель работы - разработать учебный DevOps-проект, который демонстрирует полный цикл подготовки и развертывания веб-сервиса:
 
-- создание REST API на FastAPI;
-- обработка данных рабочих станций с помощью pandas;
+- разработка REST API на FastAPI;
+- обработка тестовых данных с помощью pandas;
 - упаковка приложения в Docker-образ;
-- публикация Docker-образа в Docker Hub;
+- публикация образа в Docker Hub;
 - описание инфраструктуры OpenStack через Terraform;
-- запуск приложения на виртуальной машине через cloud-init;
-- подготовка Kubernetes-манифестов для запуска в Minikube.
+- автоматическая настройка VM через cloud-init;
+- запуск приложения в Kubernetes/Minikube.
 
 ## 2. Описание проекта
 
-Проект представляет собой FastAPI-сервис для аудита рабочих станций и
-определения систем, готовых к вводу в защищенный контур.
-
-В приложении используется тестовый набор рабочих станций. Для каждой станции
-хранятся поля:
+`protected-workstation-audit-service` - это FastAPI-сервис для аудита защищенности рабочих станций. Внутри приложения находится тестовый набор рабочих станций. Для каждой станции хранятся:
 
 - `hostname` - имя рабочей станции;
 - `department` - подразделение;
 - `hardening_score` - оценка защищенности конфигурации;
-- `antivirus_enabled` - признак активного антивируса;
+- `antivirus_enabled` - признак включенного антивируса;
 - `disk_encryption` - признак включенного шифрования диска.
 
-Готовыми к вводу в защищенный контур считаются рабочие станции, для которых:
+Рабочая станция считается готовой к вводу в защищенный контур, если:
 
 - `hardening_score >= 85`;
 - `antivirus_enabled = true`;
 - `disk_encryption = true`.
-
-Эндпоинт `/audit-ready` возвращает сообщение:
-
-```text
-Рабочая станция готова к вводу в защищенный контур
-```
-
-Также он возвращает общее количество готовых станций, распределение по
-подразделениям и список рабочих станций, прошедших аудит.
 
 ## 3. Используемые технологии
 
@@ -78,26 +60,7 @@
 - Minikube;
 - kubectl.
 
-## 4. Репозиторий и иллюстрации
-
-Проект размещен в учебном GitHub-репозитории:
-
-```text
-https://github.com/nxnk88/pupils-bachelor-openstack-service
-```
-
-URL репозитория сохранен прежним, но содержимое проекта, API и отчет были
-переработаны под новую тему `protected-workstation-audit-service`.
-
-Скриншоты в отчете сохранены как иллюстрации этапов технологического контура
-Docker, Terraform, OpenStack и Kubernetes. Они фиксируют последовательность
-развертывания и проверки инфраструктуры, поэтому в отдельных архивных снимках
-могут встречаться старые технические имена.
-
-![Рисунок 1. Репозиторий проекта на GitHub](screenshots/01-github-repository.jpg)
-*Рисунок 1. Учебный репозиторий проекта на GitHub.*
-
-Структура локального проекта:
+## 4. Структура репозитория
 
 ```text
 .
@@ -107,14 +70,21 @@ Docker, Terraform, OpenStack и Kubernetes. Они фиксируют после
 ├── .dockerignore
 ├── .gitignore
 ├── README.md
-├── DEFENSE.md
 ├── screenshots/
 ├── terraform-openstack/
+│   ├── versions.tf
+│   ├── variables.tf
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── cloud-init.yaml
+│   ├── terraform-init.ps1
+│   ├── terraform.tfvars.example
+│   └── README.md
 └── k8s/
+    ├── namespace.yaml
+    ├── deployment.yaml
+    └── service.yaml
 ```
-
-![Рисунок 2. Структура проекта](screenshots/02-project-tree.jpg)
-*Рисунок 2. Структура локального проекта.*
 
 ## 5. Описание API
 
@@ -122,61 +92,45 @@ Docker, Terraform, OpenStack и Kubernetes. Они фиксируют после
 | --- | --- | --- |
 | `GET` | `/` | Главная страница сервиса |
 | `GET` | `/health` | Проверка состояния приложения |
-| `GET` | `/workstations` | Получение списка всех рабочих станций |
+| `GET` | `/workstations` | Список всех рабочих станций |
 | `GET` | `/workstations?department=...` | Фильтрация по подразделению |
 | `GET` | `/workstation/{hostname}` | Поиск рабочей станции по имени |
-| `GET` | `/audit-ready` | Получение списка станций, прошедших аудит |
+| `GET` | `/audit-ready` | Список станций, готовых к защищенному контуру |
 
-Если рабочая станция найдена через `/workstation/{hostname}`, сервис возвращает
-ее данные. Если запись не найдена, возвращается HTTP-ответ `404`.
+Пример ответа `/audit-ready` содержит сообщение, количество готовых станций, распределение по подразделениям и список станций, прошедших аудит.
 
-Пример проверки API:
+## 6. Локальный запуск без Docker
 
-```bash
+```powershell
+cd C:\Users\bob\Documents\sharay
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+Проверка:
+
+```powershell
 curl.exe http://127.0.0.1:8000/
 curl.exe http://127.0.0.1:8000/health
 curl.exe http://127.0.0.1:8000/workstations
 curl.exe http://127.0.0.1:8000/audit-ready
 ```
 
-В PowerShell рекомендуется использовать именно `curl.exe`, потому что команда
-`curl` может быть псевдонимом `Invoke-WebRequest`.
+Swagger UI доступен по адресу:
 
-## 6. Локальный запуск
-
-Для локального запуска нужно создать виртуальное окружение, установить
-зависимости и запустить приложение через Uvicorn.
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```text
+http://127.0.0.1:8000/docs
 ```
-
-Swagger UI подтверждает, что приложение успешно запущено и все эндпоинты
-доступны для тестирования.
-
-![Рисунок 3. Swagger UI FastAPI](screenshots/03-swagger-ui.jpg)
-*Рисунок 3. Swagger UI приложения.*
 
 ## 7. Docker
 
-Docker используется для упаковки FastAPI-приложения в переносимый контейнер.
-
-```bash
-docker build -t protected-workstation-audit-service .
-docker run -d --name workstation-audit -p 8000:8000 protected-workstation-audit-service
-docker ps
-curl.exe http://127.0.0.1:8000/health
-curl.exe http://127.0.0.1:8000/audit-ready
-docker rm -f workstation-audit
-```
-
-Если локальный порт `8000` занят другим сервисом, можно использовать внешний
-порт `8001`:
+Проверенный локальный запуск контейнера:
 
 ```powershell
+cd C:\Users\bob\Documents\sharay
+docker build -t protected-workstation-audit-service .
 docker rm -f workstation-audit
 docker run -d --name workstation-audit -p 8001:8000 protected-workstation-audit-service
 docker ps
@@ -184,39 +138,21 @@ curl.exe http://127.0.0.1:8001/health
 curl.exe http://127.0.0.1:8001/audit-ready
 ```
 
-![Рисунок 4. Сборка Docker-образа](screenshots/04-docker-build.jpg)
-*Рисунок 4. Сборка Docker-образа.*
-
-![Рисунок 5. Запуск контейнера Docker](screenshots/05-docker-container.jpg)
-*Рисунок 5. Запущенный контейнер с приложением.*
-
-![Рисунок 6. Проверка API локального контейнера](screenshots/06-local-api-check.jpg)
-*Рисунок 6. Проверка локального API через `curl.exe`.*
+Контейнер публикует порт приложения `8000` внутри контейнера на локальный порт `8001`, чтобы не конфликтовать с другими сервисами на машине.
 
 ## 8. Публикация Docker-образа
 
-Для развертывания через OpenStack VM и Kubernetes образ должен быть опубликован в
-Docker Hub.
-
-```bash
+```powershell
 docker login
-docker tag protected-workstation-audit-service YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
-docker push YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
+docker tag protected-workstation-audit-service xzxzxzxze/protected-workstation-audit-service:v1
+docker push xzxzxzxze/protected-workstation-audit-service:v1
 ```
 
-Пример имени образа:
+Фактически используемый образ:
 
 ```text
-YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
+xzxzxzxze/protected-workstation-audit-service:v1
 ```
-
-![Рисунок 7. Docker Hub с опубликованным образом](screenshots/07-docker-hub.jpg)
-*Рисунок 7. Docker Hub с опубликованным образом.*
-
-После публикации этот образ используется в:
-
-- `terraform-openstack/terraform.tfvars`;
-- `k8s/deployment.yaml`.
 
 ## 9. Развертывание в OpenStack через Terraform
 
@@ -228,35 +164,28 @@ Terraform-конфигурация находится в каталоге `terra
 - подсеть `workstation-audit-subnet`;
 - роутер `workstation-audit-router`;
 - Security Group `workstation-audit-sg`;
-- правила доступа по портам `22/tcp` и `8000/tcp`;
-- SSH keypair;
-- сетевой порт для VM;
+- правила входящего доступа `22/tcp` и `8000/tcp`;
+- SSH keypair `workstation-audit-key`;
+- сетевой порт VM;
 - виртуальную машину `workstation-audit-vm`;
 - Floating IP;
 - привязку Floating IP к VM;
-- cloud-init для установки Docker и запуска контейнера.
+- cloud-init сценарий установки Docker и запуска контейнера.
 
-Команды запуска Terraform:
-
-Если `terraform init` завершается ошибкой `Invalid provider registry host`, на
-этой машине нужно использовать локальный каталог уже скачанного провайдера:
+Перед запуском нужно подготовить локальный `terraform.tfvars` на основе примера:
 
 ```powershell
-cd terraform-openstack
+cd C:\Users\bob\Documents\sharay\terraform-openstack
+copy terraform.tfvars.example terraform.tfvars
+```
+
+В `terraform.tfvars` указываются реальные значения OpenStack и Docker-образа. Этот файл не должен попадать в GitHub.
+
+Проверенные команды запуска:
+
+```powershell
+cd C:\Users\bob\Documents\sharay\terraform-openstack
 .\terraform-init.ps1
-```
-
-Или напрямую:
-
-```powershell
-terraform init "-plugin-dir=.terraform\\providers"
-```
-
-После инициализации выполняются остальные шаги:
-
-```bash
-cd terraform-openstack
-cp terraform.tfvars.example terraform.tfvars
 terraform validate
 terraform plan
 terraform apply
@@ -264,76 +193,78 @@ terraform state list
 terraform output
 ```
 
-После успешного выполнения Terraform выводятся:
+Если нужно выполнить запуск без интерактивного подтверждения:
 
-- `public_ip`;
-- `service_url`;
-- `health_url`;
-- `audit_ready_url`;
-- `ssh_command`.
+```powershell
+terraform apply -auto-approve
+```
 
-![Рисунок 8. Terraform apply, state list и output](screenshots/08-terraform-apply-state-output.jpg)
-*Рисунок 8. Terraform: создание ресурсов, `state list` и `output`.*
+## 10. Проверка сервиса в OpenStack
 
-## 10. Проверка работы сервиса в OpenStack
+После `terraform apply` получить IP:
 
-После создания ресурсов сервис проверяется по Floating IP:
+```powershell
+$ip = terraform output -raw public_ip
+terraform output
+```
 
-```bash
-curl.exe http://<FLOATING_IP>:8000/health
-curl.exe http://<FLOATING_IP>:8000/audit-ready
-ssh ubuntu@<FLOATING_IP>
+Дождаться открытия SSH и порта приложения:
+
+```powershell
+for ($i=1; $i -le 20; $i++) {
+  $ssh = Test-NetConnection -ComputerName $ip -Port 22 -InformationLevel Quiet
+  $app = Test-NetConnection -ComputerName $ip -Port 8000 -InformationLevel Quiet
+  "attempt $i ssh=$ssh app=$app"
+  if ($ssh -and $app) { break }
+  Start-Sleep -Seconds 30
+}
+```
+
+Проверить API:
+
+```powershell
+curl.exe http://$ip:8000/health
+curl.exe http://$ip:8000/audit-ready
+```
+
+Проверить VM по SSH:
+
+```powershell
+ssh ubuntu@$ip
+cloud-init status --long
 sudo docker ps
 sudo docker logs workstation-audit
 ```
 
-OpenStack Dashboard показывает, что виртуальная машина была создана и получила
-внутренний и внешний IP-адреса.
+В проверенном запуске сервис ответил:
 
-![Рисунок 9. Виртуальная машина в OpenStack](screenshots/09-openstack-instance.jpg)
-*Рисунок 9. Инстанс в OpenStack Dashboard.*
-
-Проверка по Floating IP подтверждает доступность `/health` и бизнес-эндпоинта
-`/audit-ready`.
-
-![Рисунок 10. Проверка сервиса по Floating IP](screenshots/10-openstack-api-check.jpg)
-*Рисунок 10. Проверка сервиса по Floating IP.*
-
-Дополнительная проверка по SSH подтверждает, что на виртуальной машине работает
-Docker-контейнер с приложением.
-
-![Рисунок 11. Проверка контейнера на VM](screenshots/11-vm-docker-check.jpg)
-*Рисунок 11. Проверка Docker-контейнера на виртуальной машине.*
+```json
+{"status":"ok"}
+```
 
 ## 11. Kubernetes / Minikube
 
-В каталоге `k8s/` находятся Kubernetes-манифесты:
+Манифесты находятся в каталоге `k8s/`.
 
-- `namespace.yaml` - namespace `workstation-audit`;
-- `deployment.yaml` - Deployment на 2 реплики;
-- `service.yaml` - NodePort Service на порту `30080`.
+- `namespace.yaml` создает namespace `workstation-audit`;
+- `deployment.yaml` создает Deployment на 2 реплики;
+- `service.yaml` создает NodePort Service на порту `30080`.
 
-Для корректного развертывания манифесты применяются по отдельности в правильном
-порядке:
+Проверенные команды запуска:
 
 ```powershell
+cd C:\Users\bob\Documents\sharay
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
 kubectl apply -f .\k8s\namespace.yaml
 kubectl apply -f .\k8s\deployment.yaml
 kubectl apply -f .\k8s\service.yaml
-kubectl rollout status deployment/workstation-audit-deployment -n workstation-audit
-kubectl get pods -n workstation-audit
+kubectl rollout status deployment/workstation-audit-deployment -n workstation-audit --timeout=180s
+kubectl get pods -n workstation-audit -o wide
 kubectl get svc -n workstation-audit
 kubectl get endpoints -n workstation-audit
 ```
 
-Результат развертывания показывает, что Deployment успешно раскатился, два pod'а
-перешли в состояние `Running`, а Service получил endpoints.
-
-![Рисунок 12. Развертывание в Kubernetes](screenshots/12-k8s-rollout-pods-service.jpg)
-*Рисунок 12. Kubernetes: rollout, pod'ы, Service и endpoints.*
-
-Для локальной проверки API через Kubernetes используется `port-forward`.
+Проверка через port-forward:
 
 ```powershell
 kubectl port-forward -n workstation-audit service/workstation-audit-service 18080:8000
@@ -346,67 +277,110 @@ curl.exe http://127.0.0.1:18080/health
 curl.exe http://127.0.0.1:18080/audit-ready
 ```
 
-![Рисунок 13. Проверка Kubernetes через port-forward](screenshots/13-k8s-port-forward-check.jpg)
-*Рисунок 13. Проверка API через `kubectl port-forward`.*
-
-## 12. Скриншоты, включенные в отчет
-
-В отчет включены следующие иллюстрации этапов развертывания:
-
-1. [screenshots/01-github-repository.jpg](screenshots/01-github-repository.jpg) - репозиторий проекта на GitHub.
-2. [screenshots/02-project-tree.jpg](screenshots/02-project-tree.jpg) - структура локального проекта.
-3. [screenshots/03-swagger-ui.jpg](screenshots/03-swagger-ui.jpg) - Swagger UI приложения.
-4. [screenshots/04-docker-build.jpg](screenshots/04-docker-build.jpg) - сборка Docker-образа.
-5. [screenshots/05-docker-container.jpg](screenshots/05-docker-container.jpg) - запущенный Docker-контейнер.
-6. [screenshots/06-local-api-check.jpg](screenshots/06-local-api-check.jpg) - локальная проверка API.
-7. [screenshots/07-docker-hub.jpg](screenshots/07-docker-hub.jpg) - опубликованный образ в Docker Hub.
-8. [screenshots/08-terraform-apply-state-output.jpg](screenshots/08-terraform-apply-state-output.jpg) - `terraform apply`, `terraform state list`, `terraform output`.
-9. [screenshots/09-openstack-instance.jpg](screenshots/09-openstack-instance.jpg) - виртуальная машина в OpenStack Dashboard.
-10. [screenshots/10-openstack-api-check.jpg](screenshots/10-openstack-api-check.jpg) - проверка сервиса по Floating IP.
-11. [screenshots/11-vm-docker-check.jpg](screenshots/11-vm-docker-check.jpg) - `docker ps` и `docker logs` на VM.
-12. [screenshots/12-k8s-rollout-pods-service.jpg](screenshots/12-k8s-rollout-pods-service.jpg) - Kubernetes rollout, pod'ы, Service и endpoints.
-13. [screenshots/13-k8s-port-forward-check.jpg](screenshots/13-k8s-port-forward-check.jpg) - проверка Kubernetes через `port-forward`.
-
-## 13. Очистка ресурсов
+## 12. Остановка и удаление ресурсов
 
 Локальный Docker-контейнер:
 
-```bash
+```powershell
 docker rm -f workstation-audit
 ```
 
-Ресурсы OpenStack, созданные Terraform:
+Kubernetes-ресурсы и Minikube:
 
-```bash
-cd terraform-openstack
-terraform destroy
-```
-
-Ресурсы Kubernetes:
-
-```bash
-kubectl delete -f .\k8s\service.yaml --ignore-not-found=true
-kubectl delete -f .\k8s\deployment.yaml --ignore-not-found=true
-kubectl delete -f .\k8s\namespace.yaml --ignore-not-found=true
+```powershell
+cd C:\Users\bob\Documents\sharay
+kubectl delete namespace workstation-audit --ignore-not-found=true
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" delete
 ```
 
-## 14. Вывод
+OpenStack-ресурсы, созданные Terraform:
 
-В ходе работы был создан учебный DevOps-проект для аудита защищенности рабочих
-станций. Приложение на FastAPI реализует API для инвентаризации систем и отбора
-рабочих станций, готовых к вводу в защищенный контур.
+```powershell
+cd C:\Users\bob\Documents\sharay\terraform-openstack
+terraform destroy
+```
 
-Проект подготовлен к:
+Без интерактивного подтверждения:
 
-- локальному запуску;
-- контейнеризации через Docker;
-- публикации в Docker Hub;
-- развертыванию в OpenStack с помощью Terraform;
-- запуску в Kubernetes / Minikube.
+```powershell
+terraform destroy -auto-approve
+```
 
-Краткий сценарий показа преподавателю вынесен в файл `DEFENSE.md`.
+Проверка, что ресурсы удалены:
 
-Важно: не хранить в GitHub пароли, токены, `clouds.yaml`, `.env`,
-`terraform.tfstate` и приватные SSH-ключи. Файл `terraform.tfvars` также не
-должен попадать в репозиторий, если содержит реальные данные OpenStack.
+```powershell
+docker ps -a
+terraform state list
+& "$env:TEMP\minikube-check\minikube-v1.34.0.exe" status
+```
+
+## 13. Полный сценарий запуска с нуля
+
+```powershell
+cd C:\Users\bob\Documents\sharay
+
+docker build -t protected-workstation-audit-service .
+docker rm -f workstation-audit
+docker run -d --name workstation-audit -p 8001:8000 protected-workstation-audit-service
+curl.exe http://127.0.0.1:8001/health
+
+docker tag protected-workstation-audit-service xzxzxzxze/protected-workstation-audit-service:v1
+docker push xzxzxzxze/protected-workstation-audit-service:v1
+
+cd C:\Users\bob\Documents\sharay\terraform-openstack
+.\terraform-init.ps1
+terraform validate
+terraform plan
+terraform apply
+$ip = terraform output -raw public_ip
+curl.exe http://$ip:8000/health
+curl.exe http://$ip:8000/audit-ready
+
+cd C:\Users\bob\Documents\sharay
+& "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
+kubectl apply -f .\k8s\namespace.yaml
+kubectl apply -f .\k8s\deployment.yaml
+kubectl apply -f .\k8s\service.yaml
+kubectl rollout status deployment/workstation-audit-deployment -n workstation-audit --timeout=180s
+kubectl get pods -n workstation-audit
+kubectl get svc -n workstation-audit
+kubectl get endpoints -n workstation-audit
+kubectl port-forward -n workstation-audit service/workstation-audit-service 18080:8000
+```
+
+## 14. Скриншоты для отчета
+
+В отчет включены иллюстрации основных этапов:
+
+1. [screenshots/01-github-repository.jpg](screenshots/01-github-repository.jpg) - репозиторий на GitHub.
+2. [screenshots/02-project-tree.jpg](screenshots/02-project-tree.jpg) - структура проекта.
+3. [screenshots/03-swagger-ui.jpg](screenshots/03-swagger-ui.jpg) - Swagger UI.
+4. [screenshots/04-docker-build.jpg](screenshots/04-docker-build.jpg) - сборка Docker-образа.
+5. [screenshots/05-docker-container.jpg](screenshots/05-docker-container.jpg) - запущенный контейнер.
+6. [screenshots/06-local-api-check.jpg](screenshots/06-local-api-check.jpg) - локальная проверка API.
+7. [screenshots/07-docker-hub.jpg](screenshots/07-docker-hub.jpg) - опубликованный образ.
+8. [screenshots/08-terraform-apply-state-output.jpg](screenshots/08-terraform-apply-state-output.jpg) - Terraform apply/state/output.
+9. [screenshots/09-openstack-instance.jpg](screenshots/09-openstack-instance.jpg) - VM в OpenStack Dashboard.
+10. [screenshots/10-openstack-api-check.jpg](screenshots/10-openstack-api-check.jpg) - проверка сервиса по Floating IP.
+11. [screenshots/11-vm-docker-check.jpg](screenshots/11-vm-docker-check.jpg) - Docker на VM.
+12. [screenshots/12-k8s-rollout-pods-service.jpg](screenshots/12-k8s-rollout-pods-service.jpg) - Kubernetes rollout, pods, service.
+13. [screenshots/13-k8s-port-forward-check.jpg](screenshots/13-k8s-port-forward-check.jpg) - проверка через port-forward.
+
+## 15. Безопасность
+
+Нельзя хранить в GitHub:
+
+- пароли и токены;
+- `clouds.yaml`;
+- `.env`;
+- `terraform.tfvars` с реальными значениями;
+- `terraform.tfstate` и backup state-файлы;
+- приватные SSH-ключи.
+
+В репозиторий добавлен только `terraform.tfvars.example` с шаблонными значениями.
+
+## 16. Вывод
+
+В ходе работы был создан полный учебный DevOps-проект для аудита защищенности рабочих станций. Реализовано FastAPI-приложение, подготовлен Docker-образ, описана OpenStack-инфраструктура через Terraform, настроен cloud-init для автоматического запуска контейнера на VM, а также подготовлены Kubernetes-манифесты для запуска сервиса в Minikube.
+
+Практическая проверка показала, что сервис успешно запускается локально, в Docker, в OpenStack VM и в Kubernetes/Minikube.
