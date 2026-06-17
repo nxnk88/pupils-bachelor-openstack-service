@@ -16,6 +16,8 @@
 
 **GitHub:** `https://github.com/nxnk88/protected-workstation-audit-service`
 
+![Репозиторий проекта на GitHub](screenshots/01-github-repository.jpg)
+
 ## 1. Цель работы
 
 Цель работы - разработать учебный DevOps-проект, который демонстрирует полный цикл подготовки и развертывания веб-сервиса:
@@ -86,6 +88,8 @@
     └── service.yaml
 ```
 
+![Структура проекта](screenshots/02-project-tree.jpg)
+
 ## 5. Описание API
 
 | Метод | Путь | Назначение |
@@ -124,6 +128,8 @@ Swagger UI доступен по адресу:
 http://127.0.0.1:8000/docs
 ```
 
+![Swagger UI приложения](screenshots/03-swagger-ui.jpg)
+
 ## 7. Docker
 
 Проверенный локальный запуск контейнера:
@@ -140,6 +146,12 @@ curl.exe http://127.0.0.1:8001/audit-ready
 
 Контейнер публикует порт приложения `8000` внутри контейнера на локальный порт `8001`, чтобы не конфликтовать с другими сервисами на машине.
 
+![Сборка Docker-образа](screenshots/04-docker-build.jpg)
+
+![Запущенный Docker-контейнер](screenshots/05-docker-container.jpg)
+
+![Локальная проверка API](screenshots/06-local-api-check.jpg)
+
 ## 8. Публикация Docker-образа
 
 ```powershell
@@ -153,6 +165,8 @@ docker push xzxzxzxze/protected-workstation-audit-service:v1
 ```text
 xzxzxzxze/protected-workstation-audit-service:v1
 ```
+
+![Опубликованный образ в Docker Hub](screenshots/07-docker-hub.jpg)
 
 ## 9. Развертывание в OpenStack через Terraform
 
@@ -199,6 +213,8 @@ terraform output
 terraform apply -auto-approve
 ```
 
+![Terraform apply, state list и output](screenshots/08-terraform-apply-state-output.jpg)
+
 ## 10. Проверка сервиса в OpenStack
 
 После `terraform apply` получить IP:
@@ -242,6 +258,12 @@ sudo docker logs workstation-audit
 {"status":"ok"}
 ```
 
+![Виртуальная машина в OpenStack Dashboard](screenshots/09-openstack-instance.jpg)
+
+![Проверка сервиса по Floating IP](screenshots/10-openstack-api-check.jpg)
+
+![Проверка Docker-контейнера на VM](screenshots/11-vm-docker-check.jpg)
+
 ## 11. Kubernetes / Minikube
 
 Манифесты находятся в каталоге `k8s/`.
@@ -264,6 +286,8 @@ kubectl get svc -n workstation-audit
 kubectl get endpoints -n workstation-audit
 ```
 
+![Развертывание в Kubernetes](screenshots/12-k8s-rollout-pods-service.jpg)
+
 Проверка через port-forward:
 
 ```powershell
@@ -276,6 +300,8 @@ kubectl port-forward -n workstation-audit service/workstation-audit-service 1808
 curl.exe http://127.0.0.1:18080/health
 curl.exe http://127.0.0.1:18080/audit-ready
 ```
+
+![Проверка Kubernetes через port-forward](screenshots/13-k8s-port-forward-check.jpg)
 
 ## 12. Остановка и удаление ресурсов
 
