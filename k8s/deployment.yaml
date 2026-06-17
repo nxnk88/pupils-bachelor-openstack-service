@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: workstation-audit
-          image: YOUR_DOCKERHUB_LOGIN/protected-workstation-audit-service:v1
+          image: xzxzxzxze/protected-workstation-audit-service:v1
           ports:
             - containerPort: 8000
           readinessProbe:
