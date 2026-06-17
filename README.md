@@ -106,7 +106,7 @@
 ## 6. Локальный запуск без Docker
 
 ```powershell
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -135,7 +135,7 @@ http://127.0.0.1:8000/docs
 Проверенный локальный запуск контейнера:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 docker build -t protected-workstation-audit-service .
 docker rm -f workstation-audit
 docker run -d --name workstation-audit -p 8001:8000 protected-workstation-audit-service
@@ -189,7 +189,7 @@ Terraform-конфигурация находится в каталоге `terra
 Перед запуском нужно подготовить локальный `terraform.tfvars` на основе примера:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay\terraform-openstack
+cd C:\Users\bob\Documents\protected-workstation-audit-service\terraform-openstack
 copy terraform.tfvars.example terraform.tfvars
 ```
 
@@ -198,7 +198,7 @@ copy terraform.tfvars.example terraform.tfvars
 Проверенные команды запуска:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay\terraform-openstack
+cd C:\Users\bob\Documents\protected-workstation-audit-service\terraform-openstack
 .\terraform-init.ps1
 terraform validate
 terraform plan
@@ -275,7 +275,7 @@ sudo docker logs workstation-audit
 Проверенные команды запуска:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
 kubectl apply -f .\k8s\namespace.yaml
 kubectl apply -f .\k8s\deployment.yaml
@@ -314,7 +314,7 @@ docker rm -f workstation-audit
 Kubernetes-ресурсы и Minikube:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 kubectl delete namespace workstation-audit --ignore-not-found=true
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" delete
 ```
@@ -322,7 +322,7 @@ kubectl delete namespace workstation-audit --ignore-not-found=true
 OpenStack-ресурсы, созданные Terraform:
 
 ```powershell
-cd C:\Users\bob\Documents\sharay\terraform-openstack
+cd C:\Users\bob\Documents\protected-workstation-audit-service\terraform-openstack
 terraform destroy
 ```
 
@@ -343,7 +343,7 @@ terraform state list
 ## 13. Полный сценарий запуска с нуля
 
 ```powershell
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 
 docker build -t protected-workstation-audit-service .
 docker rm -f workstation-audit
@@ -353,7 +353,7 @@ curl.exe http://127.0.0.1:8001/health
 docker tag protected-workstation-audit-service xzxzxzxze/protected-workstation-audit-service:v1
 docker push xzxzxzxze/protected-workstation-audit-service:v1
 
-cd C:\Users\bob\Documents\sharay\terraform-openstack
+cd C:\Users\bob\Documents\protected-workstation-audit-service\terraform-openstack
 .\terraform-init.ps1
 terraform validate
 terraform plan
@@ -362,7 +362,7 @@ $ip = terraform output -raw public_ip
 curl.exe http://$ip:8000/health
 curl.exe http://$ip:8000/audit-ready
 
-cd C:\Users\bob\Documents\sharay
+cd C:\Users\bob\Documents\protected-workstation-audit-service
 & "$env:TEMP\minikube-check\minikube-v1.34.0.exe" start --driver=docker --container-runtime=docker
 kubectl apply -f .\k8s\namespace.yaml
 kubectl apply -f .\k8s\deployment.yaml
