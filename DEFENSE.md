@@ -74,7 +74,7 @@ cloud-init и в Kubernetes Deployment.
 ```powershell
 cd C:\Users\bob\Documents\sharay\terraform-openstack
 
-terraform init
+.\terraform-init.ps1
 terraform validate
 terraform plan
 terraform apply

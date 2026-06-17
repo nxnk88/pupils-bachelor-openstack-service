@@ -238,10 +238,25 @@ Terraform-конфигурация находится в каталоге `terra
 
 Команды запуска Terraform:
 
+Если `terraform init` завершается ошибкой `Invalid provider registry host`, на
+этой машине нужно использовать локальный каталог уже скачанного провайдера:
+
+```powershell
+cd terraform-openstack
+.\terraform-init.ps1
+```
+
+Или напрямую:
+
+```powershell
+terraform init "-plugin-dir=.terraform\\providers"
+```
+
+После инициализации выполняются остальные шаги:
+
 ```bash
 cd terraform-openstack
 cp terraform.tfvars.example terraform.tfvars
-terraform init
 terraform validate
 terraform plan
 terraform apply

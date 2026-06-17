@@ -52,8 +52,22 @@ cp terraform.tfvars.example terraform.tfvars
 
 ## 4. Запуск Terraform
 
+Если `terraform init` завершается ошибкой `Invalid provider registry host`, на
+этой машине используйте локальный каталог уже скачанного провайдера:
+
+```powershell
+.\terraform-init.ps1
+```
+
+Или эквивалентную команду:
+
+```powershell
+terraform init "-plugin-dir=.terraform\\providers"
+```
+
+После этого можно выполнять остальные команды:
+
 ```bash
-terraform init
 terraform validate
 terraform plan
 terraform apply
